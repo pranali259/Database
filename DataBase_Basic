@@ -1,0 +1,52 @@
+Connect to server - 
+mysql -h localhost -u root -p
+
+MariaDB[none] - none means data base is not created
+
+Creating a database -
+
+CREATE DATABASE databasename;
+
+CREATE DATABASE ss91db;
+
+Check databases - 
+SHOW DATABASES;
+
+Select database - 
+USE ss91db;
+
+Datatypes
+-> numeric(numbers)
+1. int(tinyint, smallint, mediumint, int, bidint)
+2. decimalvalues(float, double, decimal(maximum_digits, decimal_places))
+decimal(5,2) - 999.99 is max value, 5 digit with 3 decimal places
+
+-> Character 
+1. char(max_len)
+2. varchar(max_len)
+name char(10) - Riya******  - It allocates 10 bytes always
+name varchar(10)  - Riya*   - It allocates +1 byte only so required less memory
+3. text
+
+-> datetime
+date yyyy-mm-dd
+time hh:mm:ss
+datetime yyyy-mm-dd hh:mm:ss
+
+-> binary - It is used to store images, binary data
+1. byte
+2. binary
+3. blob - to store character or file
+
+constraints
+1. Primary key
+2. foreign key
+3. unique
+4. not null
+5. default
+
+Database object - whatever created inside the database using CREATE command.
+
+DDL - 
+
+
