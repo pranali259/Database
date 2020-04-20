@@ -1,0 +1,972 @@
+Built-in functions in SQL
+
+single row functions
+-> Math functions
+
+
+1. abs()
+select abs(-10);
+select abs(30);
+
+2. sqrt()
+select sqrt(16);
+
+3. exp()
+select exp(10);
+
+4.mod()
+select mod(12,5);
+select 12 mod 5;
+select 12 % 5;
+
+5. pow()
+select pow(2,3);
+select power(2,3);
+
+floor()
+select floor(12.34);
+
+7. ceil()
+select ceil(12.34);
+select ceil(12.0);
+
+8. round() - If number is greater than 5 then add +1 
+select round(12.341234, 2);
+12.34
+
+select round(34.987654, 2);
+34.99
+
+select round(123.456789, -1);
+120
+
+select round(456.456789, -1);
+460
+
+select round(456.456789, -2);
+500
+
+9. truncate()
+
+select truncate(456.456789, -1);
+450
+
+select round(34.987654, 2);
+34
+
+
+String functions ->
+
+1. Upper()
+select upper('itvedant');
+
+1. lower()
+select lower('ITVedant');
+
+3. concat
+select concat('Good ','Morning');
+Good Morning
+
+select concat(firstname, " ", lastname) as fullname from employees;
+
+select upper(concat(firstname,' ',lastname)) as fullName from employees;
+
+4. replace(string, replacable, replacement)
+select replace('I love learning','learning','earning');
+
+5. substr(string, position, no of character)
+select substr('I love learning',3,5);
+
+
+date time functions
+
+1.curdate
+select curdate();
+
+2. now
+select now()
+
+3. sysdate
+select sysdate();
+
+4. year
+select year(now())
+
+4. month
+select month(now())
+
+day
+select day(now())
+
+last_day
+select last_day(now());
+
+8. date_format(date, format string)
+21st December 2019
+select date_format(curdate(), '%D %M %y');
+
+9. datediff(latest, old)
+select datediff(curdate(), '1987-01-08');
+select datediff(curdate(), '1987-01-08')/365;
+select round(datediff(curdate(), '1987-01-08')/365);
+
+
+1. Display all the order details such that it contains orderNo, orderDate(12th Dec, 19), no of days taken to dispatch the order
+select orderNumber, date_format(orderDate, '%D %M %y'), date_format(shippedDate, '%D %M %y'), datediff(shippedDate, orderDate) as 'No of days' from orders;
+
+
+2. Display all customers names along with their contact person full name 
+select concat(customerName,' ----- ',contactFirstName,' ',contactLastName) as CustContactDetails from customers;
+
+3. Display the first same day date of the next year
+E.g. 21dec 2019 is sat
+	first sat of next yeat is 4th Jan 2020
+	
+Assume 5th Jan 2020 is Sum
+		3rd Jan 2021
+		
+		
+select adddate('2020-01-04',365);
+365 - 366 - 365
+sat - 
+366
+
+s M T W Th F S
+0 1 2 3 4  5 6
+
+No of weeks+(7-DateCode)
+
+365-355
+
+select last_day(now()); 
+if select year(now())/4==0 then 
+366-
+
+366-5=361
+361+4=
+
+
+
+ANY - 
+
+Any > - min in the list
+Any < - max in the list
+Dispaly all the products that is having more rate than any planes
+1. select MSRP from products where productLine="Planes" order by MSRP;
+2. select productName, productLine, MSRP from products where MSRP > ANY (select MSRP from products where productLine="Planes") and not productLine = 'Planes';
+
+ALL -
+ALL > - max in the list
+ALL < - min in the list
+ 
+Dispaly all the products that is having rate greater than all Motorcycles;
+1. select productLine,MSRP from products where productLine="Motorcycles" order by MSRP;
+2. select productName, productLine, MSRP from products where MSRP > All (select MSRP from products where productLine="Motorcycles") and not productLine = 'Motorcycles';
+
+
+Display customerName with highest order greater than average of orders
+
+Steps - 
+1. Finding customerNumber and orderNumber
+2. From clause to find average of count
+3. having clause to show counts > AVG
+4. Max of count
+5. fetch customerName from customers
+
+select AVG(count) from (select customerNumber, count(orderNumber) count from orders group by customerNumber);
+select AVG(count) from (select customerNumber, count(orderNumber) count from orders) a;
+select MAX(count) from (select customerNumber, count(orderNumber) count from orders) m;
+select customerNumber,orderNumber from orders where orderNumber > ALL (select AVG(count) from (select customerNumber, count(orderNumber) count from orders) a);
+
+select customerName from customers where customerNumber = 
+(
+select customerNumber from orders group by customerNumber having count(orderNumber) > (
+select AVG(count) from (select customerNumber, count(orderNumber) count from orders group by customerNumber a) 
+ORDER BY count(orderNumber) DESC limit 1);
+
+***********************************************************************************
+
+Views - 
+
+create view viewname
+as 
+select query;
+
+create view ordercount
+as 
+select customerNumber, count(orderNumber) count from orders;
+
+show view
+select * from ordercount;
+
+drop view - 
+drop ordercount;
+
+select customerName from customers where customerNumber = 
+(select customerNumber from ordercount  where count = (select max(count) from ordercount where count > (select AVG(count) from ordercount)));
+
+
+********************************************************************************************
+
+JOINS - 
+merging of more than two tables
+
+1. Equi JOIN
+
+Display employee name and city they are working in.
+
+select firstName, city
+from employees e, offices o
+where e.officeCode = o.officeCode;
+
+
+2. Self JOIN
+Employee report to another employee. It is the example of self join.
+
+Display all employee name and theie manager's name
+
+select emp.firstName employeeName, mgr.firstName Manager
+from employees emp, employees mgr
+where emp.firstName = mgr.employeeNumber; 
+
+3. Cross JOIN/ cartisien product
+select firstName, city
+from employees e, offices of
+
+Technique 1 - 
+Use JOIN keyword
+ON Keyword
+USING keyword
+
+Dispaly all employees and their work city
+
+select e.firstName, o.city
+from employees e JOIN offices o
+USING (officeCode);
+______________________________________________________________
+Display all customers along their sales representative
+
+select e.firstName, c.customerName
+from employees e JOIN customers c
+ON e.employeeNumber = c.salesRepEmployeeNumer;
+
+select e.firstName, c.customerName
+from employees e JOIN customers c;
+
+select e.firstName, o.city
+from employees e CROSS JOIN offices o;
+
+______________________________________________________________
+Display all the customers with their sales reps work city
+
+select c.customerName, o.city
+from customers c, employees e, offices o
+where c.salesRepEmployeeNumer = e.salesRepEmployeeNumer and e.officeCode =  o.officeCode;
+
+select c.customerName, o.city
+from customers c JOIN employees e
+ON c.salesRepEmployeeNumer = e.salesRepEmployeeNumer JOIN offices o USING (officeCode);
+
+______________________________________________________________
+
+LEFT OUTER JOIN
+
+In below query we are getting null value for employee if no one customer allocated to him.
+select e.firstName, c.customerName 
+FROM employees e LEFT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber;
+
++-----------+------------------------------------+
+| firstName | customerName                       |
++-----------+------------------------------------+
+| Diane     | NULL                               |
+| Mary      | NULL                               |
+| Jeff      | NULL                               |
+| William   | NULL
+
+RIGHT OUTER JOIN
+In below query we are getting null value for customer if no one employee allocated to him.
+select e.firstName, c.customerName 
+FROM employees e RIGHT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber;
+
++-----------+------------------------------------+
+| firstName | customerName                       |
++-----------+------------------------------------+
+| NULL      | Atelier graphique                  |
+| Leslie    | Signal Gift Stores                 |
+| Andy      | Australian Collectors, Co.         |
+| Gerard    | La Rochelle Gifts                  |
+| Barry     | Baane Mini Imports                 |
+| Leslie    | Mini Gifts Distributors Ltd.       |
+| NULL      | Havel & Zbyszek Co                 |
+
+
+*********************************************************************
+
+Display all the customers and their sales representative names who work in Paris office.
+
+select c.salesRepEmployeeNumber, c.customerName, e.officeCode, o.officeCode, o.city
+FROM customers c, employees e, offices o
+where c.salesRepEmployeeNumber = e.employeeNumber and e.officeCode =  o.officeCode and o.city="Paris";
+
+
+select c.salesRepEmployeeNumber, c.customerName, e.officeCode, o.officeCode, o.city
+FROM customers c, employees e
+where c.salesRepEmployeeNumber = e.employeeNumber and officeCode = (select officeCode from offices WHERE city="Paris")
+______________________________________________________________
+
+Dispaly customer name along with order details between 5th Jan 2003 to 5th March 2003.
+
+select c.customerName, o.orderNumber, o.orderDate
+FROM customers c JOIN orders o
+ON c.customerNumber = o.customerNumber and o.orderDate BETWEEN '2003-01-05' AND '2003-03-05';
+
+9 records
+______________________________________________________________
+
+List all customers having living city Boston amd office city London.
+
+select c.customerName, c.city, o.city
+FROM customers c, offices o, employees e
+where c.salesRepEmployeeNumber = e.employeeNumber and e.officeCode =  o.officeCode and c.city = 'Boston' and o.city= 'London';
+
+Empty
+______________________________________________________________
+
+List customer wise payment made to company. Customer name to be displyed.
+
+select customerName, sum(amount)
+FROM customers JOIN payments
+USING (customerNumber)
+group by customerName;
+
+select customerNumber, sum(amount) from payments group by customerNumber;
+
+98 rows
+
+______________________________________________________________
+
+Display office city wise employee count
+
+select o.city, o.officeCode, e.employeeNumber
+FROM offices o LEFT JOIN employees e
+ON o.officeCode = e. officeCode;
+
+select o.city, count(e.employeeNumber)
+FROM employees e JOIN offices o
+USING (officeCode)
+GROUP BY o.city;
+
+select officeCode, count(employeeNumber) from employees group by officeCode;
+
+select officeCode
+23 rows
+
+______________________________________________________________
+
+Dispaly customer name and sales representative name who have the same sales representative like 'Petit Auto' and have creditlimit < 90000
+
+select c.customerName, e.firstName, e.lastName, c.creditLimit, c.salesRepEmployeeNumber, e.employeeNumber
+FROM customers c, employees e
+where c.salesRepEmployeeNumber = e.employeeNumber and c.creditLimit<90000;
+
+select customerName, firstName from customers join employees
+on salesRepEmployeeNumber=employeeNumber
+where salesRepEmployeeNumber = (select salesRepEmployeeNumber from customers where customerName = 'Petit Auto') and creditLimit<90000;
+
+
+______________________________________________________________
+
+Display customerwise receivable and received amount for the year 2003
+
+select c.customerName, p.amount, o.orderNumber, o.status
+FROM customers c, payments p, orders o, orderdetails ord
+where c.customerNumber = p.customerNumber;
+
+
+select quantityOrdered, priceEach, (quantityOrdered*priceEach) as TotalAmount from orderdetails;
+
+
+
+
+
+************************************************************************************
+
+JOINS using View
+Customers - customerNumber
+
+
+
+
+
+
+______________________________________________________________
+
+select c.customerName, p.productName, o.quantityOrdered, p.productLine
+FROM customers c, products p, orderdetails o, orders od
+where c.customerNumber = od.customerNumber and p.productCode = o.productCode and o.orderNumber = od.orderNumber and p.productLine="Ships";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+******************************************************************
+Procedure
+
+MISC - SQL
+
+Stored Procedure:
+It is compiled and stored into memory
+
+1. Create statement
+BEGIN
+	decalre variablename datatype;
+	declare varname datatype default value;
+	
+	set varname = value
+	
+	
+	
+	
+	
+	
+	
+DELIMITER #
+
+CREATE OR REPLACE PROCEDURE prodName(parameters)
+1. IN varname datatype
+2. OUT varname datatype
+3. INOUT varname datatype
+
+Create 
+
+DELIMITER #
+CREATE OR REPLACE PROCEDURE getInfo()
+BEGIN	
+	SELECT count(*) from products;
+	SELECT count(*) from customers;
+END;#
+
+call getInfo()#
+
+______________________________________________________________
+
+IF condition THEN
+statement
+ELSEIF condition THEN
+statement
+ELSE
+statement
+END IF;
+
+CREATE OR REPLACE PROCEDURE evenodd(IN no int, OUT msg varchar(20))
+BEGIN
+	IF no%2=0 THEN
+		SET msg = "EVEN";
+	ELSE
+		SET msg = "ODD";
+	END IF;
+END#
+
+call evenodd(5, @S)#
+
+select @S#
+
+
+______________________________________________________________
+
+Write a procedure to input a number  and return if it is positive negative or zero
+
+DELIMITER #
+CREATE OR REPLACE PROCEDURE PosNev(IN Number int, OUT msg varchar(20))
+BEGIN
+	IF Number<0 THEN
+		SET msg = "Negative";
+	ELSEIF Number>0 THEN
+		SET msg = "Positive";
+	ELSE
+		SET msg = "Zero";
+	END IF;
+END#
+
+
+CALL PosNev(-1,@S)#
+
+select @S#
+
+______________________________________________________________
+
+WHILE condition DO
+statements
+END WHILE;
+
+CREATE OR REPLACE PROCEDURE sumofX(INOUT X int)
+BEGIN
+	DECLARE no int DEFAULT X-1;
+		WHILE no>0 DO
+			SET X = X + no;
+			SET no = no - 1;
+		END WHILE;
+END#
+
+SET @no = 4#
+
+call sumofX(@no)#
+
+select @no#
+
+Sum = 4+3+2+1
+
+X = 5
+no = 0
+
+5+4+3+2+1
+______________________________________________________________
+
+LoopName : WHILE condition DO
+statements
+	IF condition THEN
+		LEAVE LoopName; 
+END WHILE;
+
+CREATE OR REPLACE PROCEDURE sumTill5(INOUT X int)
+BEGIN
+	DECLARE n int default 1;
+	DECLARE sum int default 0;
+	Sumof5 : WHILE n<=X DO
+			 set sum = sum + n;
+			 IF n=5 THEN
+				LEAVE Sumof5;
+			 END IF;
+			 SET n = n + 1;
+	END WHILE;
+	SET X = sum;
+END#
+
+
+call sumTill5(@no)#
+
+select @no#
+
+
+______________________________________________________________
+
+Write a procedure to check if given no is prime or not.
+
+CREATE OR REPLACE PROCEDURE PrimeNum(IN X int, OUT msg varchar(20))
+BEGIN
+	DECLARE n int DEFAULT 2;
+	DECLARE CNT int DEFAULT 0;
+	IF X = 1 THEN
+		SET msg = "No is Prime";
+	ELSE
+	PrimeNo:WHILE n != X DO
+				IF X % n = 0  THEN
+					SET CNT = CNT + 1;
+					LEAVE PrimeNo;
+				END IF;	
+				SET n = n + 1;	
+			END WHILE;
+		IF CNT > 0 THEN
+			SET msg = "No is not Prime";
+		ELSE
+			SET msg = "No is Prime";
+		END IF;
+	END IF;
+END#
+
+SET @no = 13#
+
+call PrimeNum(@no,@S)#
+
+select @S#
+______________________________________________________________
+
+Write a procedure that will accept customerNumber and will return status of customers as follows:
+CreditLimit>90000
+Status = Platinum
+cl between 50000 and 90000 - Gold
+cl between 30000 and 50000 - Silver
+rest - bronze
+cl  = 0 - NA
+
+DELIMITER #
+CREATE OR REPLACE Procedure CustCategory(IN X int, OUT msg varchar(20))
+BEGIN
+	DECLARE CL int;
+	SET CL=X;
+		IF CL>90000 THEN
+			SET msg = "Platinum";
+		ELSEIF (CL>50000 and CL<=90000) THEN
+			SET msg = "Gold";
+		ELSEIF (CL>30000 and CL<=50000) THEN
+			SET msg = "Silver";
+		ELSEIF CL=0 THEN
+			SET msg = "Not Applicable";
+		ELSE
+			SET msg = "Bronze";
+		END IF;
+END#
+
+
+SET @no = 90000#
+call CustCategory(@no,@S)#
+
+
+
+FUNCTION - 
+1. Procedure code is compile and store - It is precompiled body
+2. function is compiled for every time they get executed
+
+CREATE OR REPLACE FUNCTION functionName(parameters varname datatype)
+RETURNS datatype
+NOT/DETERMINISTIC
+BEGIN	
+	REPEAT
+	UNTIL condition
+	END REPEAT;
+	RETURN varname;
+END;
+
+WHILE do loop say execute till condition is TRUE
+REPEAT UNTIL loop say execute till condition is FALSE
+
+CREATE OR REPLACE FUNCTION looptill5()
+RETURNS varchar(50)
+DETERMINISTIC
+	BEGIN
+		DECLARE x INT DEFAULT 1;
+		DECLARE str varchar(50) DEFAULT "";
+		REPEAT
+			SET str = concat(str, x, ",");
+			SET x = x+1;
+		until x>5
+		end REPEAT;
+		return str;
+	END;#
+	
+
+action 
+-> CONTINUE
+-> EXIT
+
+condition_value
+-> Error code
+-> SQL state stateNumber
+-> SQLEXCEPTION
+
+CREATE TABLE books(bid int primary key, bookName varchar(50) unique, pages int, price decimal(10,2));
+
+Write a procedure that will insert data in table and display count
+
+CREATE OR REPLACE PROCEDURE insertBooks(IN id int, IN name varchar(50), IN pg int, IN pr decimal(10,2))
+BEGIN
+	DECLARE CONTINUE HANDLER for 1062 select "Duplicate Entry" as "Error message";
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION select "Some Error occured" as "Error messages";
+	INSERT INTO books VALUES (id, name, pg, pr);
+	SELECT count(*) FROM books;
+	SELECT * from testing;
+END;#
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Display office citywise employee Count
+
+select officeCode, count(employeeNUmber) from employees
+group by officeCode;
+
+select o.city, count(e.employeeNumber)
+FROM employees e JOIN offices o
+USING (officeCode)
+GROUP BY o.city;
+
+-> Display customer name and Sales Representative name who have the same sales representative like 'Petit Auto' and have creditlimit less than 90000
+
+select customerName from Customers where salesRepEMployeeNumber = (select salesRepEmployeeNumber from customers where customerName = 'Petit Auto') and creditLimit < 90000;
+
+select customerName, firstName from Customers join employees
+on salesRepEmployeeNumber=employeeNumber
+where salesRepEMployeeNumber = (select salesRepEmployeeNumber from customers where customerName = 'Petit Auto') and creditLimit < 90000;
+
+-> Display customerwise receivable and received amount for the year 2003
+
+CustomerName	Total Amount Payable	Total Amount already Paid
+total - sum()
+customerName - customers
+total amount payable - orderdetails table (bridge - orders)
+total amount already paid - Payments table
+
+select c.customerName, sum(od.priceEach * od.quantityOrdered) as Receivable, sum(p.amount) as "Received"
+FROM customers c JOIN payments p USING (customerNumber) JOIN orders o USING (customerNumber) JOIN orderDetails od USING (orderNumber)
+WHERE year(paymentDate) = 2003 and year(orderDate) = 2003
+GROUP BY c.customerName;
+
+select c.customerName, sum(od.priceEach * od.quantityOrdered) as Receivable, sum(p.amount) as "Received"
+FROM customers c, payments p, orders o, orderdetails od
+WHERE c.customerNumber = p.customerNumber and 
+c.customerNUmber = o.customerNumber and
+o.orderNumber = od.orderNumber and year(paymentDate) = 2003 
+and year(orderDate) = 2003
+Group By c.customerName;
+
+Customers - customerNumber, customerName, city
+EMployees - employeeNumber, firstName, lastName, officeCOde
+Orders - orderDate, orderNumber
+orderdetails - quantityOrdered, priceEach
+Payments - paymentDate, amount
+products - productCode, productName, productLine
+
+select c.customerNUmber, c.customerName, c.city, e.employeeNumber, e.firstName, e.lastName, e.officeCode, o.orderDate, o.orderNumber,
+od.quantityOrdered, od.priceEach, pd.productCode, pd.productName, pd.productLine
+FROM customers c, employees e, orders o, orderDetails od, products pd
+WHERE c.salesRepEmployeeNumber = e.employeeNumber and
+c.customerNumber = o.customerNumber and o.orderNumber = od.orderNumber
+and od.productCode = pd.productCode;
+
+select c.customerNUmber, c.customerName, c.city, e.employeeNumber, e.firstName, e.lastName, e.officeCode, o.orderDate, o.orderNumber,
+od.quantityOrdered, od.priceEach, 
+pd.productCode, pd.productName, pd.productLine
+FROM customers c JOIN employees e 
+ON c.salesRepEmployeeNumber = e.employeeNumber JOIN orders o 
+USING (customerNumber) JOIN orderDetails od USING (orderNumber)
+JOIN products pd USING (productCOde);
+
+create view salesReport
+as
+select c.customerNUmber, c.customerName, c.city, e.employeeNumber, e.firstName, e.lastName, e.officeCode, o.orderDate, o.orderNumber,
+od.quantityOrdered, od.priceEach, 
+pd.productCode, pd.productName, pd.productLine
+FROM customers c JOIN employees e 
+ON c.salesRepEmployeeNumber = e.employeeNumber JOIN orders o 
+USING (customerNumber) JOIN orderDetails od USING (orderNumber)
+JOIN products pd USING (productCOde);
+
+select concat(firstName, " ", lastName) as name, 
+sum(priceEach*quantityOrdered) from salesReport
+Group By name;
+
+select productName, sum(priceEach*quantityOrdered) from salesReport
+where year(orderDate)=2003
+Group by productName ;
+
+select productName, sum(quantityOrdered), 
+sum(priceEach*quantityOrdered) from salesReport
+where firstName = "Pamela"
+Group by productName;
+
+DCL - Data Control Language
+CREATE USER username@hostname identified by 'password';
+
+create user snehajan2020@localhost identified by 'sneha';
+
+mysql -h localhost -u snehajan2020 -p
+
+
+GRANT previlige ON databasename.tablename TO username@hostname;
+
+GRANT INSERT ON ss91db.employees TO snehajan2020@localhost;
+databasename.*
+.
+
+REVOKE privilege ON databasename.tablename FROM username@hostname;
+
+REVOKE INSERT ON ss91db.employees FROM snehajan2020@localhost;
+
+GRANT ALL ON ss91db.* TO snehajan2020@localhost;
+
+ALTER USER username@hostname identified by 'newpassword';
+[8:20 pm, 20/04/2020] anuradha: Misc - SQL
+STored Procedure, function, trigger
+
+1. create statement
+BEGIN
+	declare variablename datatype;
+	declare varname datatype default value;
+	
+	set varname = value;
+	select columname INTO varname from table where clause;
+END
+
+
+2. block - begin - end
+
+3.1 declaring variable
+3.2 declaring exception
+3.3 declaring cursor
+
+4. business logic
+assigning values
+
+change the line terminator
+
+DELIMITER #
+
+CREATE OR REPLACE PROCEDURE prodName(parameters)
+1. IN varname datatype
+2. OUT varname datatype
+3. INOUT varname datatype
+
+
+CREATE OR REPLACE PROCEDURE getInfo()
+BEGIN
+	SELECT count(*) from products;
+END;#
+
+CALL getInfo()#
+
+IF condition THEN
+stat
+ELSEIF condition THEN
+stat
+ELSE
+stat
+END IF;
+
+CREATE OR REPLACE PROCEDURE evenodd(IN no int, OUT msg varchar(20))
+BEGI…
+[8:20 pm, 20/04/2020] anuradha: Display all the customer name, ProductName and Quantity ordered of those customers who have ordered Ships
+
+customers - customerName
+products - productName
+orderdetails - quantityOrdered
+orders
+
+Select c.customerName, p.productName, od.quantityOrdered
+FROM customers c, orders o, orderdetails od, products p
+WHERE c.customerNumber = o.customerNumber and
+o.orderNumber=od.orderNumber and od.productCode = p.productCode
+and p.productLine="Ships";
+
+Select c.customerName, p.productName, od.quantityOrdered
+FROM customers c, orders o, orderdetails od, products p
+WHERE c.customerNumber = o.customerNumber and
+o.orderNumber=od.orderNumber and od.productCode = p.productCode and od.productCode IN (Select productCode from products where productLine="Ships");
+
+Write a procedu…
+[8:20 pm, 20/04/2020] anuradha: Cursor
+DECLARE cusrsorName CURSOR FOR select statement;
+
+Declare
+variables
+cursor
+exception handler
+
+Select city, count(customerNumber) from customers
+group by city
+having count(customerNumber) >= 5;#
+
+Madrid, NYC
+
+CREATE OR REPLACE PROCEDURE cityNames(OUT ct varchar(100))
+BEGIN
+	DECLARE flag int DEFAULT 0;
+	DECLARE c varchar(50);	
+	DECLARE cityCur CURSOR FOR select city from customers group by city having count(customerNumber) >= 5;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET flag = 1;
+SET ct = "";
+OPEN cityCur;
+getCity: LOOP
+	FETCH cityCur INTO c;
+	IF flag=1 THEN
+		LEAVE getCity;
+	END IF;
+	SET ct = concat(ct, c, ",");
+END LOOP getCity;
+CLOSE cityCur;
+END#
+
+CALL cityNames(@c)#
+
+Write a procedure that will accept city name and will return comma seperated email list of employees working in the given city.
+
+CREATE OR REPLACE PROCEDURE emailList(IN ct varchar(50), OUT emails text)
+BEGIN
+	DECLARE flag int DEFAULT 0;
+	DECLARE e varchar(80);	
+	DECLARE emailCur CURSOR FOR SELECT email FROM employees WHERE officeCode IN (SELECT officeCode FROM offices WHERE city = ct);
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET flag = 1;
+SET emails = "";
+OPEN emailCur; 
+getE: LOOP
+	FETCH emailCur INTO e;
+	IF flag=1 THEN
+		LEAVE getE;
+	END IF;
+	SET emails = concat(emails, e, ",");
+END LOOP getE;
+CLOSE emailCur;
+END#
+
+CALL emailList('London', @e)#
+
+Trigger
+
+CREATE OR REPLACE TRIGGER triggername
+AFTER|BEFORE INSERT|UPDATE|DELETE ON tablename
+FOR EACH ROW
+BEGIN
+
+END
+
+insert into product (name, price, qty) Values ('Maggi', 10, 100), ('Society Tea', 100, 50);
+
+CREATE OR REPLACE TRIGGER insertintosales
+AFTER INSERT ON sales
+FOR EACH ROW
+BEGIN 
+	UPDATE product SET qty = qty - new.qty WHERE pid = new.prodid;
+END#
+
+INSERT INTO SALES (billno, prodid, custid, qty) VALUES (1, 2, 1, 5),
+(1, 1, 1, 2), (1, 3, 1, 1);
+
+CREATE OR REPLACE TRIGGER updateintosales
+AFTER UPDATE ON sales
+FOR EACH ROW
+BEGIN
+	IF new.qty > old.qty THEN
+		UPDATE product SET qty = qty - (new.qty-old.qty) WHERE pid = old.prodid;
+	ELSE
+		UPDATE product SET qty = qty + (old.qty-new.qty) WHERE pid = old.prodid;
+	END IF;
+END#
+
+UPDATE sales SET qty = 10 WHERE billno=1 and prodid=2;#
+
+UPDATE sales SET qty = 1 WHERE billno=1 and prodid=1;#
+
+CREATE OR REPLACE TRIGGER deleteonsales
+AFTER DELETE ON sales
+FOR EACH ROW
+BEGIN
+	UPDATE product SET qty = qty+old.qty WHERE pid = old.prodid;
+END#
+
+delete from sales where billno=1 and prodid=3;
+
